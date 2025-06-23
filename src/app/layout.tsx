@@ -8,12 +8,14 @@ import { Inter, Space_Grotesk as SpaceGrotesk } from 'next/font/google';
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
+  weight: ['400', '500', '700'],
   display: 'swap',
 });
 
 const spaceGrotesk = SpaceGrotesk({
   subsets: ['latin'],
   variable: '--font-space-grotesk',
+  weight: ['400', '500', '700'],
   display: 'swap',
 });
 
