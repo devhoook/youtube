@@ -9,14 +9,12 @@ const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
   display: 'swap',
-  weight: ['400', '500', '700'],
 });
 
 const spaceGrotesk = SpaceGrotesk({
   subsets: ['latin'],
   variable: '--font-space-grotesk',
   display: 'swap',
-  weight: ['400', '500', '700'],
 });
 
 export const metadata: Metadata = {
