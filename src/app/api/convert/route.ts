@@ -1,17 +1,19 @@
-import { NextRequest, NextResponse } from 'next/server';
-import ytdl from 'ytdl-core';
+import { NextResponse } from 'next/server';
+import play from 'play-dl';
 import ffmpeg from 'fluent-ffmpeg';
 import ffmpegInstaller from '@ffmpeg-installer/ffmpeg';
 import { PassThrough } from 'stream';
 
-// Set the path for fluent-ffmpeg to find the ffmpeg binary
+// Set the path for fluent-ffmpeg
 ffmpeg.setFfmpegPath(ffmpegInstaller.path);
 
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
   try {
     const { youtubeURL } = await req.json();
 
-    if (!youtubeURL || !ytdl.validateURL(youtubeURL)) {
+    // Validate the URL using play-dl
+    const validation = await play.validate(youtubeURL);
+    if (validation !== 'yt_video') {
       return NextResponse.json(
         { success: false, error: "Invalid or missing YouTube URL." },
         { status: 400 }
@@ -19,43 +21,40 @@ export async function POST(req: NextRequest) {
     }
 
     // Get video info to name the file
-    const info = await ytdl.getInfo(youtubeURL);
-    const videoTitle = info.videoDetails.title.replace(/[^a-zA-Z0-9]/g, '_'); // Sanitize filename
+    const info = await play.video_info(youtubeURL);
+    const videoTitle = info.video_details.title?.replace(/[^a-zA-Z0-9]/g, '_') || 'audio';
 
-    // Create a pass-through stream to handle the data flow
-    const stream = new PassThrough();
+    // Get the audio stream
+    const stream = await play.stream(youtubeURL, {
+      discordPlayerCompatibility: true,
+      quality: 2 // 0=lowest, 1=low, 2=high
+    });
+
+    // Create a pass-through stream to handle the data flow for ffmpeg
+    const passThrough = new PassThrough();
 
     // Start the conversion
-    ffmpeg(ytdl(youtubeURL, { quality: 'highestaudio', filter: 'audioonly' }))
+    ffmpeg(stream.stream)
       .audioBitrate(192)
       .format('mp3')
       .on('error', (err) => {
         console.error('FFMPEG Error:', err);
-        stream.destroy(err);
+        passThrough.end();
       })
-      .pipe(stream);
+      .pipe(passThrough);
 
     // Set the headers for file download
     const headers = new Headers();
     headers.set('Content-Type', 'audio/mpeg');
     headers.set('Content-Disposition', `attachment; filename="${videoTitle}.mp3"`);
 
-    // Return the stream as the response.
-    // The type for NextResponse body can be ReadableStream<any> | null | undefined.
-    // Casting `stream` to `any` because of type mismatch between Node.js streams and Web streams,
-    // but Next.js handles this internally.
-    return new NextResponse(stream as any, { headers });
+    // Return the stream as the response
+    return new NextResponse(passThrough as any, { headers });
 
-  } catch (error: any) {
+  } catch (error) {
     console.error('Conversion Error:', error);
-    let errorMessage = "Failed to convert the video.";
-     if (error.message && error.message.includes('private')) {
-        errorMessage = 'This video is private and cannot be converted.';
-    } else if (error.message && (error.message.includes('unavailable') || error.message.includes('410'))) {
-        errorMessage = 'This video is unavailable or has been removed.';
-    }
     return NextResponse.json(
-      { success: false, error: errorMessage },
+      { success: false, error: "Conversion Failed. This video may be unavailable or has been removed." },
       { status: 500 }
     );
   }
