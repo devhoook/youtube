@@ -2,6 +2,7 @@ import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { Header } from '@/components/header';
+import { Footer } from '@/components/footer';
 
 export const metadata: Metadata = {
   title: 'AudioClipper',
@@ -21,11 +22,12 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet" />
         <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet" />
       </head>
-      <body className="font-body antialiased">
+      <body className="flex min-h-screen flex-col font-body antialiased">
         <Header />
-        <main>
+        <main className="flex-grow">
           {children}
         </main>
+        <Footer />
         <Toaster />
       </body>
     </html>

@@ -64,7 +64,7 @@ export default function Home() {
   };
 
   return (
-    <div className="flex min-h-[calc(100vh-3.5rem)] w-full flex-col items-center justify-start bg-background p-4 sm:p-8">
+    <div className="flex w-full flex-col items-center justify-start bg-background p-4 sm:p-8">
       <div className="w-full max-w-xl">
         <Card className="shadow-2xl">
           <CardHeader className="text-center">
