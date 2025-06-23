@@ -71,7 +71,7 @@ export default function Home() {
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
               <Music className="h-8 w-8" />
             </div>
-            <CardTitle className="font-headline text-3xl font-bold">AudioClipper</CardTitle>
+            <CardTitle className="font-headline text-3xl font-bold">YtMp3</CardTitle>
             <CardDescription className="text-muted-foreground">
               Convert any YouTube video to a high-quality MP3 file in seconds.
             </CardDescription>

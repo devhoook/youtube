@@ -5,8 +5,9 @@ import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 
 export const metadata: Metadata = {
-  title: 'AudioClipper',
-  description: 'Convert YouTube videos to MP3',
+  title: 'YtMp3 - Fast YouTube to MP3 Converter & Downloader',
+  description: 'Quickly convert and download YouTube videos to high-quality MP3 files for free with YtMp3. Our fast, reliable, and user-friendly converter works on any device without registration.',
+  keywords: ['YouTube to MP3', 'YtMp3', 'YouTube converter', 'MP3 downloader', 'video to audio', 'free converter'],
 };
 
 export default function RootLayout({
