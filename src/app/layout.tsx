@@ -3,6 +3,21 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
+import { Inter, Space_Grotesk as SpaceGrotesk } from 'next/font/google';
+
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+  display: 'swap',
+  weight: ['400', '500', '700'],
+});
+
+const spaceGrotesk = SpaceGrotesk({
+  subsets: ['latin'],
+  variable: '--font-space-grotesk',
+  display: 'swap',
+  weight: ['400', '500', '700'],
+});
 
 export const metadata: Metadata = {
   title: 'YtMp3 - Fast YouTube to MP3 Converter & Downloader',
@@ -16,13 +31,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet" />
-        <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet" />
-      </head>
+    <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable}`}>
       <body className="flex min-h-screen flex-col font-body antialiased">
         <Header />
         <main className="flex-grow">
