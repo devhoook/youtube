@@ -1,77 +1,67 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useState, useRef } from 'react';
 import { AlertCircle, Loader2, Music } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { convertUrl } from './actions';
-
-interface FormState {
-  success: boolean;
-  error?: string | null;
-  base64?: string | null;
-  title?: string | null;
-}
-
-const initialState: FormState = {
-  success: false,
-  error: null,
-  base64: null,
-  title: null,
-};
-
-function SubmitButton() {
-  const { pending } = useFormStatus();
-
-  return (
-    <Button type="submit" className="w-full sm:w-auto" disabled={pending}>
-      {pending ? (
-        <>
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          Converting...
-        </>
-      ) : (
-        'Convert to MP3'
-      )}
-    </Button>
-  );
-}
 
 export default function Home() {
-  const [state, formAction] = useFormState(convertUrl, initialState);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
-  useEffect(() => {
-    if (state.success && state.base64 && state.title) {
-      try {
-        const byteCharacters = atob(state.base64);
-        const byteNumbers = new Array(byteCharacters.length);
-        for (let i = 0; i < byteCharacters.length; i++) {
-          byteNumbers[i] = byteCharacters.charCodeAt(i);
-        }
-        const byteArray = new Uint8Array(byteNumbers);
-        const blob = new Blob([byteArray], { type: 'audio/mpeg' });
-        const url = window.URL.createObjectURL(blob);
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsLoading(true);
+    setError(null);
 
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = state.title;
-        document.body.appendChild(link);
-        link.click();
+    const formData = new FormData(event.currentTarget);
+    const url = formData.get('url') as string;
+
+    try {
+      const response = await fetch('/api/convert', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ youtubeURL: url }),
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = downloadUrl;
         
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
+        const disposition = response.headers.get('content-disposition');
+        let filename = 'audio.mp3';
+        if (disposition && disposition.indexOf('attachment') !== -1) {
+            const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+            const matches = filenameRegex.exec(disposition);
+            if (matches != null && matches[1]) {
+                filename = matches[1].replace(/['"]/g, '');
+            }
+        }
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
         
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(downloadUrl);
         formRef.current?.reset();
-      } catch (e) {
-        console.error("Error decoding or downloading file:", e);
+      } else {
+        const errorData = await response.json();
+        setError(errorData.error || 'An unknown error occurred during conversion.');
       }
+    } catch (err) {
+      setError('A network error occurred. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
-  }, [state.success, state.base64, state.title]);
+  };
 
   return (
     <div className="flex min-h-screen w-full items-center justify-center bg-background p-4">
@@ -86,7 +76,7 @@ export default function Home() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form ref={formRef} action={formAction} className="space-y-4">
+          <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <label htmlFor="url-input" className="sr-only">YouTube URL</label>
               <div className="flex flex-col gap-2 sm:flex-row">
@@ -97,18 +87,28 @@ export default function Home() {
                   placeholder="https://www.youtube.com/watch?v=..."
                   required
                   className="flex-grow text-base"
+                  disabled={isLoading}
                 />
-                <SubmitButton />
+                <Button type="submit" className="w-full sm:w-auto" disabled={isLoading}>
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Converting...
+                    </>
+                  ) : (
+                    'Convert to MP3'
+                  )}
+                </Button>
               </div>
             </div>
           </form>
         </CardContent>
-        {state.error && (
+        {error && (
           <CardFooter>
             <Alert variant="destructive" className="w-full">
               <AlertCircle className="h-4 w-4" />
               <AlertTitle>Conversion Failed</AlertTitle>
-              <AlertDescription>{state.error}</AlertDescription>
+              <AlertDescription>{error}</AlertDescription>
             </Alert>
           </CardFooter>
         )}
