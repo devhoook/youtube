@@ -20,6 +20,7 @@ const spaceGrotesk = SpaceGrotesk({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://cnv-mp3.com'),
   title: 'YtMp3 - Fast YouTube to MP3 Converter & Downloader',
   description: 'Quickly convert and download YouTube videos to high-quality MP3 files for free with YtMp3. Our fast, reliable, and user-friendly converter works on any device without registration.',
   keywords: ['YouTube to MP3', 'YtMp3', 'YouTube converter', 'MP3 downloader', 'video to audio', 'free converter'],
